@@ -1,0 +1,122 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+   <title>REGISTER TIME</title>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+<body bgcolor="#FFFFFF"> 
+<br>
+<center><img src="http://www.sega-rd2.com/f355/ranking_en/IMAGES/top_image.gif" width="336" height="94" align="bottom"><br>
+<font size="+2" color="#000066"><b>Welcome <%= player.name %>!</b></font>
+<br>
+<br>
+<font color="#000066"><b>Register your best lap times to the "F355 Challenge" Internet Ranking.</b></font><font color="#FF3300"><b><br>
+</b></font></center>
+
+<br>
+<br>
+<form action="set_player_data.cgi" method="post">
+<b><br>
+   <input type="hidden" name="playerId" value="<%= player.regId %>">
+   <input type="hidden" name="country" value="<%= country %>">
+   <p><table border="0" bgcolor="#FF0000" cellspacing="0" cellpadding="2">
+      <tr>
+         <td nowrap>
+           <font color="#FFFFFF"><b>Player Information</b></font>
+         </td>
+      </tr>
+   </table>
+    </b>
+
+   <table border="0" cellspacing="0" cellpadding="3">
+      <tr>
+         <td>Name</td><td nowrap><b><%= player.name %></b></td>
+      </tr>
+      <tr>
+         <td>Country</td><td nowrap><b><%= player.country %></b></td>
+      </tr>
+      <tr>
+         <td nowrap>Score Name</td>
+         <td><input type="text" maxlength="3" name="scoreName" value="<%= player.scoreName %>"></td>
+         <td><input type="submit" name="update" value="Update"></td>
+      </tr>
+      <tr>
+         <td nowrap>Play Count</td><td nowrap><b><%= player.getPlayCount() %></b></td>
+      </tr>
+      <tr>
+         <td nowrap>Distance Driven</td><td nowrap><b><%= distanceDriven %> mi</b></td>
+      </tr>
+   </table>
+ 
+ <p><table border="0" bgcolor="#FF0000" cellspacing="0" cellpadding="2">
+      <tr>
+         <td nowrap>
+           <font color="#FFFFFF"><b>Best Lap Times</b></font>
+         </td>
+      </tr>
+   </table>
+   <p>
+ 	<input type="submit" name="registerAll" value="Register all times"></p>
+    <table border="0" cellspacing="0" cellpadding="3">
+      <% for (const track of tracks) { %>
+	      <tr bgcolor="#FFCCCC">
+	         <td><%= track.name %></td>
+	         <td>AT</td>
+	         <% if (track.automatic) { %>
+		         <td nowrap><input type="submit" name="atTrack<%= track.id %>" value="<%= track.automatic.time %>"></b>
+		         	<img src="http://www.sega-rd2.com/f355/ranking_en/IMAGES/<%= track.automatic.raceMode %>" vspace="2" hspace="2">
+		         	<% if (track.automatic.assist) { %>
+		         		<img src="http://www.sega-rd2.com/f355/ranking_en/IMAGES/icon_assisted.gif" vspace="2" hspace="2" alt="assisted">
+		         	<% } %>
+		         	<% if (track.automatic.tuned) { %>
+		         		<img src="http://www.sega-rd2.com/f355/ranking_en/IMAGES/icon_tuned.gif" vspace="2" hspace="2" alt="tuned">
+		         	<% } %>
+		         </td>
+		     <% } %>
+	      </tr>
+	      <tr>
+	         <td></td>
+	         <td>SA</td>
+	         <% if (track.semiAuto) { %>
+		         <td nowrap><input type="submit" name="saTrack<%= track.id %>" value="<%= track.semiAuto.time %>"></b>
+		         	<img src="http://www.sega-rd2.com/f355/ranking_en/IMAGES/<%= track.semiAuto.raceMode %>" vspace="2" hspace="2">
+		         	<% if (track.semiAuto.assist) { %>
+                        <img src="http://www.sega-rd2.com/f355/ranking_en/IMAGES/icon_assisted.gif" vspace="2" hspace="2" alt="assisted">
+                    <% } %>
+                    <% if (track.semiAuto.tuned) { %>
+                        <img src="http://www.sega-rd2.com/f355/ranking_en/IMAGES/icon_tuned.gif" vspace="2" hspace="2" alt="tuned">
+                    <% } %>
+                 </td>
+	    	 <% } %>
+	      </tr>
+      <% } %>
+    </table>
+</form> 
+   <p>
+   <a name="upload_data"> </a>
+   <table border="0" bgcolor="#FF0000" cellspacing="0" cellpadding="2">
+      <tr>
+         <td nowrap>
+           <font color="#FFFFFF"><b>Upload Driving Data</b></font>
+         </td>
+      </tr>
+   </table>
+   <p>
+    <form action="/cgi-bin/f355/dp3_player_replay.cgi#upload_data" enctype="multipart/form-data" method="post">
+	  <input type="hidden" name="playerId" value="<%= player.regId %>"/>
+	  <input type="hidden" name="country" value="<%= country %>">
+	  <table border="0" cellspacing="0" cellpadding="3">
+	  	<% if (uploadMessage.length) { %>
+	       <tr>
+	         <td colspan="2"><%= uploadMessage %></td>
+	       </tr>
+	  	<% } %>
+        <tr>
+          <td><input size=15 type="vmfile" name="thefile" id="thefile"></td><td><input type="submit" value="Upload"></td>
+        </tr>
+	  </table>
+	</form>
+
+<center><a href="http://www.sega-rd2.com/f355/ranking_<%= country %>/RANK/RANKCOURSE/index.html"><b>See all rankings</b></a></center>
+</body>
+</html>
