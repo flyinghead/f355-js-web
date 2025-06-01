@@ -33,6 +33,6 @@
     "clean": "rimraf build",
     "start": "DEV=1 nodemon index.ts",
     "test": "jest",
-    "build": "tsc"
+    "build": "tsc && cp -r ghost static views node_modules build/"
   }
 }

@@ -151,7 +151,7 @@ export async function getResults(circuit: number, semiAuto: boolean, index: numb
         const rows = await conn.query({ rowsAsArray: true, sql: query }, [circuit, semiAuto]);
         let results = new Array<Result>(0);
         for (let row of rows) {
-            logger.info(`result by ${row[0]} set on ${row[9]}`);
+            logger.debug(`result by ${row[0]} set on ${row[9]}`);
             const result = new Result(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9]);
             results.push(result);
         }
