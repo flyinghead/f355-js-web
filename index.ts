@@ -6,6 +6,8 @@ import { viewRank } from "./view_rank";
 import { playerDataUpload, playerDataSet, uploadReplay } from "./netrank";
 import { downloadReplay } from "./download";
 import path from 'path';
+import * as discord from "./discord";
+import * as status from "./status";
 
 const app = express();
 app.use(express.urlencoded());
@@ -39,6 +41,9 @@ app.post('/cgi-bin/f355/set_player_data.cgi', playerDataSet);
 app.post('/cgi-bin/f355/dp3_player_replay.cgi', uploadReplay);
 
 app.get('/cgi-bin/f355/download.cgi/:circuit/:file/:vmivms', downloadReplay);
+
+discord.init();
+status.init();
 
 const server = http.createServer((req, res) => {
     netplayRequestListener(req, res, app);

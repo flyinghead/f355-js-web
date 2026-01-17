@@ -1,19 +1,22 @@
-import { IncomingMessage } from 'node:http';
-import https from 'node:https';
+import { IncomingMessage } from "node:http";
+import https from "node:https";
 import { logger } from "./f355";
+import * as fs from "node:fs";
+import parseConfigFile from "./config";
 
-const webHookUrl = process.env.DISCORD_URL;
-const gamepic = "https://dcnet.flyca.st/gamepic/f355.jpg";
+var webHookUrl = process.env.DISCORD_URL;
+var gameName = "F355 Challenge";
+var gamepic = "https://dcnet.flyca.st/gamepic/f355.jpg";
 
 const postNotif = function(postData: string): void
 {
     if (webHookUrl === undefined)
         return;
     const options = {
-        method: 'POST',
+        method: "POST",
         headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(postData),
+        "Content-Type": "application/json",
+        "Content-Length": Buffer.byteLength(postData),
         "User-Agent": "DCNet-DiscordWebhook",           // required
         },
     };
@@ -27,7 +30,7 @@ const postNotif = function(postData: string): void
         else
             request.end();
     });
-    request.on('error', (err) => {
+    request.on("error", (err) => {
         logger.error("Discord error: " + err.message)
     });
 }
@@ -70,4 +73,36 @@ export function raceStart(trackName: string, racers: string[])
        "attachments": []
     };
     postNotif(JSON.stringify(notif));
+}
+
+export function init()
+{
+    try {
+        const gamesData = fs.readFileSync("/usr/local/share/dcnet/games.json", "utf-8");
+        if (gamesData === undefined) {
+            logger.warn("Can't load games.json");
+        }
+        else
+        {
+            const games = JSON.parse(gamesData.toString());
+            const game = games["f355"];
+            if (game !== undefined) {
+                gameName = game.name ?? gameName;
+                gamepic = game.thumbnail ?? gamepic;
+            }
+        }
+    } catch (err) {
+        logger.warn("Can't load games.json: " + err);
+    }
+
+    try {
+        const configData = fs.readFileSync("/usr/local/etc/dcnet/discord.conf", "utf-8");
+        if (configData !== undefined)
+        {
+            const config = parseConfigFile(configData.toString());
+            webHookUrl = config.get("webhook") ?? process.env.DISCORD_URL;
+        }
+    } catch (err) {
+        logger.warn("Can't load discord.conf: " + err);
+    }
 }

@@ -360,3 +360,17 @@ export async function saveResult(race: Race, id: number, result: Buffer): Promis
         logger.error('Saving result failed: ' + err);
     }
 }
+
+export function getRaceCount() {
+    return races.length;
+}
+
+export function getPlayerCount() {
+    var playerCount = waitingList.entries.size;
+    races.forEach(race => {
+        if (race.isRaceDone())
+            return;
+        playerCount += race.getEntryCount();
+    });
+    return playerCount;
+}

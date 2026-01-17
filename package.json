@@ -32,7 +32,7 @@
   "scripts": {
     "clean": "rimraf build",
     "start": "DEV=1 nodemon index.ts",
-    "test": "jest",
+    "test": "tsc && jest build/",
     "build": "tsc && cp -r ghost static views node_modules build/"
   }
 }
