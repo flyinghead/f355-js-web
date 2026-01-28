@@ -1,4 +1,4 @@
-import { IncomingMessage } from "node:http";
+import http from "node:http";
 import https from "node:https";
 import { logger } from "./f355";
 import * as fs from "node:fs";
@@ -20,7 +20,8 @@ const postNotif = function(postData: string): void
         "User-Agent": "DCNet-DiscordWebhook",           // required
         },
     };
-    const request = https.request(webHookUrl, options, (res: IncomingMessage) => {
+    const secure = webHookUrl.startsWith("https:");
+    const request = (secure ? https : http).request(webHookUrl, options, (res: http.IncomingMessage) => {
         if (res.statusCode === undefined || res.statusCode < 200 || res.statusCode >= 300)
             logger.error(`Discord POST failed: ${res.statusCode} ${res.statusMessage}`);
     });
@@ -100,6 +101,9 @@ export function init()
         if (configData !== undefined)
         {
             const config = parseConfigFile(configData.toString());
+            const disabledGames = config.get("disabled-games");
+            if (disabledGames !== undefined && disabledGames.indexOf("f355-js") >= 0)
+                return;
             webHookUrl = config.get("webhook") ?? process.env.DISCORD_URL;
         }
     } catch (err) {
