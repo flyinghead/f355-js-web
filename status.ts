@@ -14,9 +14,9 @@ class Status {
     gameCount = 0;
 }
 
-async function updateStatus()
+function updateStatus()
 {
-    var status = new Status();
+    const status = new Status();
     status.playerCount = races.getPlayerCount();
     status.gameCount = races.getRaceCount();
     const payload = JSON.stringify([ status ], undefined, 4);

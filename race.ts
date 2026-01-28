@@ -3,6 +3,7 @@ import * as f355 from "./f355";
 import { logger } from "./f355";
 import * as fs from 'node:fs/promises'
 import * as discord from "./discord"
+import { saveRace, saveQualifier, saveRaceResult } from "./database";
 
 const makeId = function(): number {
     return f355.getRandomInt(10000000); // MUST be less than 10 million for correct qualifier ranking
@@ -15,6 +16,8 @@ class Entry
     readonly circuit: number;
     readonly intermediate: boolean;
     readonly weather: number;
+    readonly carNum: number;
+    readonly carColor: number;
     readonly created = new Date();
     lastHeardOf = new Date(); // entry checked every 3 sec
 
@@ -24,6 +27,8 @@ class Entry
         this.circuit = Math.min(f355.NET_CIRCUIT_COUNT - 1, Math.max(0, entryData[108]));
         this.intermediate = entryData[112] != 0;
         this.weather = entryData[116];
+        this.carNum = entryData[124];
+        this.carColor = entryData[125];
     }
 
     getName() {
@@ -46,7 +51,7 @@ class WaitingList
         allPlayers.sort();
         discord.playerWaiting(entry.getName(), f355.getCircuitName(entry.circuit), allPlayers);
     }
-
+    
     checkEntry(id: number): number
     {
         this.timeoutEntries();
@@ -77,7 +82,7 @@ export const STATUS_QUALIF = 1;
 export const STATUS_FINAL = 2;
 export const STATUS_FINISHED = 3;
 
-class Race
+export class Race
 {
     readonly circuit: number;
     readonly weather: number;
@@ -87,18 +92,20 @@ class Race
     #qualifiers = new Map<number, Buffer>();
     #qualifiedRank = new Map<number, number>();
     #results = new Map<number, Buffer>();
+    #dbId: number | undefined;
+    #racerDbIds = new Map<number, number>();
 
     constructor(circuit: number, weather: number) {
         this.circuit = circuit;
         this.weather = weather;
     }
 
-    setStatus(status: number): void {
-		if (status == this.status)
+    async setStatus(status: number): Promise<void> {
+		if (status === this.status)
             return;
         this.status = status;
         this.startTime = new Date();
-        if (status == STATUS_FINAL)
+        if (status === STATUS_FINAL)
         {
             // Calculate the qualifier ranking
             let ids = Array.from(this.#entries.keys());
@@ -116,6 +123,62 @@ class Race
             });
             for (let i = 0; i < ids.length; i++)
                 this.#qualifiedRank.set(ids[i], i + 1);
+            // Save the race and qualifiers to the db
+            try {
+                this.#dbId = await saveRace(this);
+                if (this.#dbId === undefined)
+                    return;
+                ids.forEach(async id => {
+                    const entryData = this.#entries.get(id)!;
+                    const entry = new Entry(entryData);
+                    const rank = this.#qualifiedRank.get(id);
+                    if (rank === undefined)
+                        return;
+                    const qualif = this.getQualifier(id)!;
+                    let time = qualif.readUint32LE(0);
+                    if (time == 0xfffff) {
+                        time = -1;
+                    }
+                    else {
+                        time = (time + qualif.readFloatLE(4)) / 60.2;
+                        time = Math.trunc(time * 1000);
+                    }
+                    const dbId = await saveQualifier(this.#dbId!, f355.getRacerName(entryData), f355.getPlayerCountry(entryData), 
+                        entry.carNum, entry.carColor, entry.intermediate, time, rank);
+                    if (dbId !== undefined)
+                        this.#racerDbIds.set(id, dbId);
+                });
+            } catch (err) {
+                logger.error("Database error: " + err);
+            }
+        }
+        else if (status === STATUS_FINISHED && this.#dbId !== undefined)
+        {
+            // Save final results to the db
+            try {
+                let ids = Array.from(this.#results.keys());
+                ids.sort((id1, id2) => {
+                    const r1 = this.#results.get(id1)!;
+                    const r2 = this.#results.get(id2)!;
+                    const t1 = r1.readUInt32LE(12) * 1000 + r1.readUInt32LE(16);
+                    const t2 = r2.readUInt32LE(12) * 1000 + r2.readUInt32LE(16);
+                    return t1 - t2;
+                });
+                ids.forEach(async (id, index) => {
+                    const dbId = this.#racerDbIds.get(id);
+                    if (dbId === undefined)
+                        return;
+                    const result = this.#results.get(id)!;
+                    let time = result.readUInt32LE(12);
+                    if (time == 0xfffff)
+                        time  = -1;
+                    else
+                        time = time * 1000 + result.readUInt32LE(16);
+                    saveRaceResult(dbId, time, index + 1);
+                });
+            } catch (err) {
+                logger.error("Database error: " + err);
+            }
         }
 	}
 
@@ -366,7 +429,7 @@ export function getRaceCount() {
 }
 
 export function getPlayerCount() {
-    var playerCount = waitingList.entries.size;
+    let playerCount = waitingList.entries.size;
     races.forEach(race => {
         if (race.isRaceDone())
             return;

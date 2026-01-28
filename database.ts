@@ -3,6 +3,7 @@ import mariadb from 'mariadb';
 import * as fs from 'node:fs/promises';
 import { getResultDir } from "./f355";
 import path from "node:path";
+import { Race } from "./race"
 
 const pool = mariadb.createPool({
     host: 'localhost', 
@@ -11,6 +12,7 @@ const pool = mariadb.createPool({
     connectionLimit: 5,
     allowPublicKeyRetrieval: true,
     database: "f355",
+    insertIdAsNumber: true,
 });
 
 export class Result
@@ -375,5 +377,138 @@ export async function saveResult(regId: string, data: Buffer, fileName: string, 
         if (conn)
             conn.end();
     }
+}
 
+export async function saveRace(race: Race): Promise<number | undefined>
+{
+    let conn;
+    try {
+        conn = await pool.getConnection();
+        const insert = "INSERT INTO race (race_date, circuit, weather) VALUES (?, ?, ?)";
+        const ret = await conn.query(insert, [race.startTime, race.circuit, race.weather]);
+        return ret.insertId;
+    } catch (err) {
+        throw err;
+    } finally {
+        if (conn)
+            conn.end();
+    }
+}
+
+export async function saveQualifier(raceId: number, name: string, country: string,
+    carNum: number, carColor: number, intermediate: boolean, time: number, rank: number): Promise<number | undefined>
+{
+    let conn;
+    try {
+        conn = await pool.getConnection();
+        const insert = "INSERT INTO racer (race_id, name, country, car_number, car_color, intermediate, qualif_time, qualif_rank)"
+            + " VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        const ret = await conn.query(insert, [raceId, name, country, carNum, carColor, intermediate ? 1 : 0, time, rank]);
+        return ret.insertId;
+    } catch (err) {
+        throw err;
+    } finally {
+        if (conn)
+            conn.end();
+    }
+}
+
+export async function saveRaceResult(racerId: number, time: number, rank: number)
+{
+    let conn;
+    try {
+        conn = await pool.getConnection();
+        const update = "UPDATE racer SET race_time = ?, race_rank = ? WHERE id = ?";
+        conn.query(update, [time, rank, racerId]);
+    } catch (err) {
+        throw err;
+    } finally {
+        if (conn)
+            conn.end();
+    }
+}
+
+export class Racer
+{
+    constructor(
+        readonly id: number,
+        readonly name: string,
+        readonly country: string,
+        readonly carNumber: number,
+        readonly carColor: number,
+        readonly intermediate: boolean,
+        readonly qualifTime: number,
+        readonly qualifRank: number,
+        readonly raceTime: number | undefined,
+        readonly raceRank: number | undefined)
+    {}
+};
+
+export class NetRace
+{
+    constructor(
+        readonly id: number,
+        readonly race_date: Date,
+        readonly circuit: number,
+        readonly weather: number,
+        readonly racers: number,
+        readonly finishers: number | undefined)
+    {}
+    qualifiers: Racer[] | undefined;
+    results: Racer[] | undefined;
+};
+
+export async function getRaces(first: number, circuit: number | undefined): Promise<NetRace[]>
+{
+    let conn;
+    try {
+        conn = await pool.getConnection();
+        let select = "SELECT race.id, race_date, circuit, weather, COUNT(racer.id) as racers FROM race JOIN racer "
+            + "ON race.id = racer.race_id ";
+        const values = [ ];
+        if (circuit !== undefined) {
+            select += "WHERE circuit = ? ";
+            values.push(circuit);
+        }
+        values.push(first);
+        select += "GROUP BY race.id ORDER BY race_date DESC LIMIT ?, 20";
+        return conn.query(select, values);
+    } catch (err) {
+        throw err;
+    } finally {
+        if (conn)
+            conn.end();
+    }
+}
+
+export async function getRace(id: number): Promise<NetRace>
+{
+    let conn;
+    try {
+        conn = await pool.getConnection();
+        const select = "SELECT race_date, circuit, weather, COUNT(racer.id) as racers, MAX(racer.race_rank) as finishers "
+            + "FROM race JOIN racer ON race.id = racer.race_id WHERE race.id = ?";
+        const races = await conn.query<NetRace[]>(select, [id]);
+        if (races.length === 0)
+            throw Error("Invalid race identifier");
+        const race = races[0];
+        race.qualifiers = new Array<Racer>(race.racers);
+        race.results = new Array<Racer>(race.finishers ?? 0);
+        const select2 = "SELECT id, name, country, car_number as carNumber, car_color as carColor, intermediate, qualif_time as qualifTime, "
+            + "qualif_rank as qualifRank, race_time as raceTime, race_rank as raceRank FROM racer WHERE race_id = ?";
+        const racers = await conn.query<Racer[]>(select2, [id]);
+        racers.forEach((racer) => {
+            if (racer.raceRank !== undefined)
+                race.results![racer.raceRank - 1] = racer;
+            if (racer.qualifRank !== undefined)
+                // happens for imported races
+                race.qualifiers![racer.qualifRank - 1] = racer;
+        });
+        return race;
+    } catch (err) {
+        throw err;
+    } finally {
+        if (conn)
+            conn.end();
+    }
 }

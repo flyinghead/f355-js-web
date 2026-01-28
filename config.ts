@@ -1,6 +1,6 @@
 export default function parseConfigFile(content: string): Map<string, string>
 {
-    var config = new Map<string, string>();
+    const config = new Map<string, string>();
     const lines = content.split(/\r?\n/);
     lines.forEach(line => {
         line = line.trimStart();

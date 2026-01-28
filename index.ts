@@ -3,6 +3,8 @@ import { logger } from "./f355";
 import netplayRequestListener from "./netplay";
 import express from 'express';
 import { viewRank } from "./view_rank";
+import { viewRaces } from "./view_races";
+import { viewRace } from "./view_race";
 import { playerDataUpload, playerDataSet, uploadReplay } from "./netrank";
 import { downloadReplay } from "./download";
 import path from 'path';
@@ -41,6 +43,8 @@ app.post('/cgi-bin/f355/set_player_data.cgi', playerDataSet);
 app.post('/cgi-bin/f355/dp3_player_replay.cgi', uploadReplay);
 
 app.get('/cgi-bin/f355/download.cgi/:circuit/:file/:vmivms', downloadReplay);
+app.get(new RegExp('/cgi-bin/f355/net_rank.../view_races.cgi'), viewRaces);
+app.get(new RegExp('/cgi-bin/f355/net_rank.../view_race.cgi'), viewRace);
 
 discord.init();
 status.init();

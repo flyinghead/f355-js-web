@@ -64,13 +64,20 @@ export function getLapCount(circuit: number) {
     }
 }
 
+export function getPlayerCountry(entry: Buffer) {
+    return entry.subarray(105, 107).toString('ascii');
+}
+
+export function getRacerName(entry: Buffer) {
+    return entry.subarray(92, 104).toString('ascii').trim();
+}
+
 export function getPlayerName(entry: Buffer | undefined)
 {
-    if (entry === undefined || entry.length < 107)
+    if (entry === undefined)
         return "Unknown";
     // name (country)
-    return entry.subarray(92, 104).toString('ascii').trim() 
-            + " (" + entry.subarray(105, 107).toString('ascii') + ")";
+    return getRacerName(entry) + " (" + getPlayerCountry(entry) + ")";
 }
 
 export function getRandomInt(bound: number) {

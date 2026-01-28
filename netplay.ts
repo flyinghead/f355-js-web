@@ -31,7 +31,7 @@ function entryCgi(body: Buffer, res: http.ServerResponse)
         const entryData = body.subarray(3, 3 + 128);
         const id = races.addEntry(entryData);
         const entry = races.getEntry(id);
-        logger.info(`New entry ${entry?.getName()} circuit ${f355.getCircuitName(entry?.circuit ?? 0)}`);
+        logger.info(`New entry ${entry?.getName()} circuit ${f355.getCircuitName(entry?.circuit ?? 0)} weather ${entry?.weather}`);
         const outdata = Buffer.alloc(8);
         outdata.writeUint32LE(id, 0);
         outdata.writeUint32LE(id, 4);
