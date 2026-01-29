@@ -207,7 +207,7 @@ function finalCgi(body: Buffer, res: http.ServerResponse)
             logger.info(`Race ${race.getCircuitName()} result received for ${race.getEntryName(id)}`);
             const result = body.subarray(11);
             race.setResult(id, result);
-            races.saveResult(race, id, result);
+            races.saveResultToFile(race, id, result);
             if (race.isRaceDone())
                 race.setStatus(races.STATUS_FINISHED);
         }

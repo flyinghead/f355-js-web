@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
 <html>
 <head>
-   <title>F355 NETWORK RACE</title>
+   <title><%= msg.race_title %></title>
    <meta http-equiv="Content-Type" content="text/html; charset=<%=language === 'ja' ? 'x-sjis' : 'iso-8859-1'; %>">
 </head>
 <body bgcolor="#FFFFFF">
@@ -9,49 +9,49 @@
     <center>
     <table border="0" cellspacing="0" cellpadding="0" width="550">
       <tr bgcolor="#FF0000">
-          <td><font size="+1"><b><font  color="#ffffff">N</font>ETWORK RACE RANKING</b></font><br>
+          <td><font size="+1"><b><font  color="#ffffff"><%= msg.race_title2[0] %></font><%= msg.race_title2.substr(1) %></b></font><br>
             <br><img src="/f355/ranking_ja/RANK/IMAGES/<%= headTgif %>" width="274" height="20" align="bottom" alt="<%= circuitNameLow %>"></td>
           <td align="right"><img src="/f355/ranking_ja/RANK/IMAGES/F355_photo.jpg" width="83" height="50" align="bottom" alt="F355 Photo"><img src="/f355/ranking_ja/RANK/IMAGES/<%= headgif %>" width="88" height="76" align="bottom" alt="<%= circuitNameLow %>"></td>
       </tr>
     </table>
     <br>
  
-    <font size="+1" color="#000066"><b>Race Date <%= raceDate %><br></b></font>
+    <font size="+1" color="#000066"><b><%= msg.race_date %> <%= raceDate %><br></b></font>
     <br>
     <% if (race.qualifiers[0].qualifRank === undefined) { %>
-    Qualifiers and other information are missing for this race.<br>
+      <%= msg.race_missing_info %><br>
     <% } %>
-    <font color="#000066" size="+2"><b>Qualifiers</b></font>
+    <font color="#000066" size="+2"><b><%= msg.race_qualifiers %></b></font>
     <table border="0" cellpadding="0" width="550">
         <tr bgcolor="#FF0000">
            <td width="50">&nbsp;</td>
            <td width="85">&nbsp;</td>
-           <td width="140">&nbsp;<font color="#FFFFFF">Driver</font></td>
-           <td width="70"><center><font color="#FFFFFF">Country</font></center></td>
-           <td width="100">&nbsp;<font color="#FFFFFF">Lap Time</font></td>
+           <td width="140">&nbsp;<font color="#FFFFFF"><%= msg.race_driver %></font></td>
+           <td width="70"><center><font color="#FFFFFF"><%= msg.race_country %></font></center></td>
+           <td width="100">&nbsp;<font color="#FFFFFF"><%= msg.race_laptime %></font></td>
            <td width="50"><center><font color="#FFFFFF">&nbsp;</font></center></td>
         </tr>
         <% for (let i = 0; i < race.qualifiers.length; i++) { %>
         <%     if (race.qualifiers[i].qualifRank === undefined) continue; %>
             <tr bgcolor="<%= i % 2 == 0 ? '#FFCCCC' : '#FFFFFF' %>">
-               <td width="50"><center><%= i >= 8 ? 'DNQ' : i + 1 %></center></td>
+               <td width="50"><center><%= i >= 8 ? msg.race_dnq : i + 1 %></center></td>
                <td width="85">&nbsp;<img src="/f355/ranking_ja/IMAGES/carcolor<%= race.qualifiers[i].carColor %>.gif"> <%= race.qualifiers[i].carNumber + 1 %></td>
                <td width="140">&nbsp;<%= race.qualifiers[i].name %></td>
                <td width="70"><center><%= race.qualifiers[i].country %></center></td>
                <td width="100">&nbsp;<%= getTime(race.qualifiers[i].qualifTime) %></td>
-               <td width="50"><center><%= race.qualifiers[i].intermediate ? 'SA' : 'AT' %></center></td>
+               <td width="50"><center><%= race.qualifiers[i].intermediate ? msg.race_sa : msg.race_at %></center></td>
             </tr>
         <% } %>
     </table>
     <br>
-    <font color="#000066" size="+2"><b>Final Result</b></font>
+    <font color="#000066" size="+2"><b><%= msg.race_final_result %></b></font>
     <table border="0" cellpadding="0" width="550">
         <tr bgcolor="#FF0000">
            <td width="45">&nbsp;</td>
            <td width="85">&nbsp;</td>
-           <td width="140">&nbsp;<font color="#FFFFFF">Driver</font></td>
-           <td width="70"><center><font color="#FFFFFF">Country</font></center></td>
-           <td width="110">&nbsp;<font color="#FFFFFF">Race Time</font></td>
+           <td width="140">&nbsp;<font color="#FFFFFF"><%= msg.race_driver %></font></td>
+           <td width="70"><center><font color="#FFFFFF"><%= msg.race_country %></font></center></td>
+           <td width="110">&nbsp;<font color="#FFFFFF"><%= msg.race_time %></font></td>
            <td width="50"><center><font color="#FFFFFF">&nbsp;</font></center></td>
         </tr>
         <% for (let i = 0; i < race.results.length; i++) { %>
@@ -61,7 +61,7 @@
                <td width="140">&nbsp;<%= race.results[i].name %></td>
                <td width="70"><center><%= race.results[i].country %></center></td>
                <td width="110">&nbsp;<%= getTime(race.results[i].raceTime) %></td>
-               <td width="50"><center><%= race.results[i].intermediate ? 'SA' : 'AT' %></center></td>
+               <td width="50"><center><%= race.results[i].intermediate ? msg.race_sa : msg.race_at %></center></td>
             </tr>
         <% } %>
     </table>
@@ -70,7 +70,7 @@
           <td width="320"></td>
         </tr>
         <tr>
-          <td align="center"><a href="<%= upUrl %>">up</a></td>
+          <td align="center"><a href="<%= upUrl %>"><%= msg.race_up %></a></td>
         </tr>
     </table>
     </font>

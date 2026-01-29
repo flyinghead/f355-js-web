@@ -4,6 +4,7 @@ import { SqlError } from "mariadb";
 import { getRace } from "./database";
 import { parse as parseLanguage } from "accept-language-parser";
 import { circuitGifs, circuitTGifs } from "./images";
+import { dictionaries } from "./i18n";
 
 export async function viewRace(req: express.Request, res: express.Response)
 {
@@ -16,12 +17,13 @@ export async function viewRace(req: express.Request, res: express.Response)
     const langidx = req.url.indexOf('net_rank_');
     if (langidx != -1)
         language = req.url.slice(langidx + 9, langidx + 9 + 2);
-    let languages = parseLanguage(req.get('Accept-Language'));
-    if (languages.length === 0)
-        languages = [{ code: "en", quality: 1 }];
-    let bestlang = languages[0].code;
-    if (languages[0].region !== undefined)
-        bestlang += '-' + languages[0].region;
+    const dict = (dictionaries as any)[language === 'uk' ? 'en' : language];
+    let browserlangs = parseLanguage(req.get('Accept-Language'));
+    if (browserlangs.length === 0)
+        browserlangs = [{ code: "en", quality: 1 }];
+    let bestlang = browserlangs[0].code;
+    if (browserlangs[0].region !== undefined)
+        bestlang += '-' + browserlangs[0].region;
     const dateTimeFormat = new Intl.DateTimeFormat(bestlang, {
         timeStyle: "short",
         dateStyle: "short",
@@ -38,10 +40,11 @@ export async function viewRace(req: express.Request, res: express.Response)
             circuitNameLow: getCircuitName(race.circuit).toLowerCase(),
             headTgif: circuitTGifs[race.circuit],
             headgif: circuitGifs[race.circuit],
+            msg: dict,
 
             getTime: (t: number) => {
                 if (t <= 0)
-                    return "No Goal";
+                    return dict.race_no_goal;
                 else
                     return Math.trunc(t / 60000).toString().padStart(2, '0')
                         + "'" + Math.trunc((t % 60000) / 1000).toString().padStart(2, '0')

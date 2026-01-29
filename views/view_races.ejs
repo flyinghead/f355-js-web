@@ -1,21 +1,21 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
 <html>
 <head>
-   <title>F355 NETWORK RACES</title>
+   <title><%= msg.races_title %></title>
    <meta http-equiv="Content-Type" content="text/html; charset=<%=language === 'ja' ? 'x-sjis' : 'iso-8859-1'; %>">
 </head>
 <body bgcolor="#FFFFFF">
     <font face="arial">
     <center><img src="/f355/ranking_ja/IMAGES/top_image.gif" width="336" height="94" align="bottom"><br>
-    <font size="+2" color="#000066"><b>Network Race Results<br></b></font>
-    <font color="#FF3300"><b>Select a race to see the results. Select a circuit to filter.</b></font><p><font color="#FF3300"><br><center><p><table border="0" cellspacing="0" cellpadding="0">
+    <font size="+2" color="#000066"><b><%= msg.races_title2 %><br></b></font>
+    <font color="#FF3300"><b><%= msg.races_subtitle %></b></font><p><font color="#FF3300"><br><center><p><table border="0" cellspacing="0" cellpadding="0">
     </table></p></font>
 
     <table border="0" cellpadding="0" width="512">
         <tr bgcolor="#FF0000" height="30">
-           <td width="200">&nbsp;<font color="#FFFFFF">Date</font></td>
-           <td width="150">&nbsp;<font color="#FFFFFF">Circuit</font></td>
-           <td width="50"><center><font color="#FFFFFF">Racers</font></center></td>
+           <td width="200">&nbsp;<font color="#FFFFFF"><%= msg.races_date %></font></td>
+           <td width="150">&nbsp;<font color="#FFFFFF"><%= msg.races_circuit %></font></td>
+           <td width="50"><center><font color="#FFFFFF"><%= msg.races_racers %></font></center></td>
         </tr>
         <% for (let i = 0; i < races.length; i++) { %>
             <tr bgcolor="<%= i % 2 == 0 ? '#FFCCCC' : '#FFFFFF' %>" height="30">
@@ -34,9 +34,9 @@
         </tr>
         <tr>
           <td></td>
-          <td align="left"><% if (prevPageUrl.length) { %><a href="<%= prevPageUrl %>">previous</a><% } else { %>previous<% } %></td>
-          <td align="center"><a href="<%= upUrl %>">up</a></td>
-          <td align="right"><% if (nextPageUrl.length) { %><a href="<%= nextPageUrl %>">next</a><% } else { %>next<% } %></td>
+          <td align="left"><% if (prevPageUrl.length) { %><a href="<%= prevPageUrl %>"><%= msg.races_previous %></a><% } else { %><%= msg.races_previous %><% } %></td>
+          <td align="center"><a href="<%= upUrl %>"><%= msg.race_up %></a></td>
+          <td align="right"><% if (nextPageUrl.length) { %><a href="<%= nextPageUrl %>"><%= msg.races_next %></a><% } else { %><%= msg.races_next %><% } %></td>
         </tr>
     </table>
     </font>
