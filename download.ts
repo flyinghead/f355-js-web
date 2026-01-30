@@ -3,6 +3,7 @@ import * as f355 from "./f355";
 import { logger } from "./f355";
 import * as fs from 'node:fs/promises'
 import path from 'node:path';
+import { Config } from './config';
 
 const Extensions = [
     "SZS", "MTG", "SZK", "LNG", "SGO", "MNZ",
@@ -60,7 +61,7 @@ export async function downloadReplay(req: express.Request, res: express.Response
         logger.error("downloadReplay: UNSAFE FILE NAME DETECTED " + fileName);
         return;
     }
-    const replayPath = path.join(f355.getResultDir(), fileName);
+    const replayPath = path.join(Config.GHOST_DIR, fileName);
     try {
         if (req.url.endsWith(".VMI")) {
             const attachname = "F355DATA." + Extensions[Number(circuit)];

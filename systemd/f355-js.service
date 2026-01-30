@@ -1,0 +1,22 @@
+[Unit]
+Description=F355 web server
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Environment=NODE_ENV=production
+#Environment=PORT=3000
+#Environment=DB_PASSWORD=pouetpouet
+# default netrace replays also go there
+#Environment=GHOST_DIR=/var/local/lib/f355/replays
+#Environment=RACE_DIR=/var/local/lib/f355/races
+User=dcnet
+Type=simple
+Restart=always
+RestartSec=1
+WorkingDirectory=/usr/local/lib/f355-js-web
+ExecStart=/usr/local/bin/node /usr/local/lib/f355-js-web/index.js
+StandardOutput=append:/var/local/log/f355.log
+
+[Install]
+WantedBy=multi-user.target

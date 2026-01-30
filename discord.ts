@@ -3,8 +3,9 @@ import https from "node:https";
 import { logger } from "./f355";
 import * as fs from "node:fs";
 import parseConfigFile from "./config";
+import { Config } from "./config";
 
-var webHookUrl = process.env.DISCORD_URL;
+var webHookUrl = Config.DISCORD_URL;
 var gameName = "F355 Challenge";
 var gamepic = "https://dcnet.flyca.st/gamepic/f355.jpg";
 
@@ -104,7 +105,7 @@ export function init()
             const disabledGames = config.get("disabled-games");
             if (disabledGames !== undefined && disabledGames.indexOf("f355-js") >= 0)
                 return;
-            webHookUrl = config.get("webhook") ?? process.env.DISCORD_URL;
+            webHookUrl = config.get("webhook") ?? Config.DISCORD_URL;
         }
     } catch (err) {
         logger.warn("Can't load discord.conf: " + err);

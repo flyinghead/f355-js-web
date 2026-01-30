@@ -1,21 +1,21 @@
 import winston from "winston";
 import path from "node:path";
+import { Config } from "./config";
 
 export const logger = winston.createLogger({
-    level: process.env.LOG_LEVEL || "info",
+    level: Config.LOG_LEVEL,
     format: winston.format.combine(
-      winston.format.colorize({ all: true }),
+      process.env.DEV !== undefined ?
+          winston.format.colorize({ all: true })
+        : winston.format.uncolorize(),
       winston.format.timestamp({ format: "MM/DD HH:mm:ss" }),
       winston.format.printf((info) => `[${info.timestamp}][${info.level}] ${info.message}`)
     ),
     transports: [
-        new winston.transports.Console(),
-        new winston.transports.File({
-            filename: process.env.LOG_FILE || (process.env.DEV ? "f355.log" : "/var/log/f355.log")
-        })
+        new winston.transports.Console({stderrLevels: ["error", "warn", "info", "debug"]})
     ]
   });
-  
+
 export const NET_CIRCUIT_COUNT = 6;
 export const CIRCUIT_COUNT = 12;
 
@@ -82,8 +82,4 @@ export function getPlayerName(entry: Buffer | undefined)
 
 export function getRandomInt(bound: number) {
     return Math.floor(Math.random() * bound);
-}
-
-export function getResultDir() {
-    return process.env.GHOST_DIR || (process.env.DEV ? path.join(__dirname, 'replays') : "/var/lib/f355/replays");
 }

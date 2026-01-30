@@ -1,14 +1,14 @@
 import { logger } from "./f355";
 import mariadb from 'mariadb';
 import * as fs from 'node:fs/promises';
-import { getResultDir } from "./f355";
 import path from "node:path";
-import { Race } from "./race"
+import { Race } from "./race";
+import { Config } from "./config";
 
 const pool = mariadb.createPool({
     host: 'localhost', 
-    user: process.env.DB_USER ?? 'f355', 
-    password: process.env.DB_PASSWORD ?? 'pouetpouet',
+    user: Config.DB_USER, 
+    password: Config.DB_PASSWORD,
     connectionLimit: 5,
     allowPublicKeyRetrieval: true,
     database: "f355",
@@ -368,7 +368,9 @@ export async function saveResult(regId: string, data: Buffer, fileName: string, 
             throw new Error("Time not registered");
         await conn.query("UPDATE result SET data_path = ? WHERE id = ?", [fileName, rows[0][0]]);
         if (rows[0][2] !== null)
-            fs.rm(path.join(getResultDir(), rows[0][2]));
+            try {
+                await fs.rm(path.join(Config.GHOST_DIR, rows[0][2]));
+            } catch (err) {}
 
         return player;
     } catch (err) {

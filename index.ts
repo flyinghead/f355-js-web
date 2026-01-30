@@ -10,10 +10,12 @@ import { downloadReplay } from "./download";
 import path from 'path';
 import * as discord from "./discord";
 import * as status from "./status";
+import { Config } from "./config";
 
 const app = express();
 app.use(express.urlencoded());
 app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
 app.use(function(req, res, next) {
     if (req.url.startsWith('/f355/ranking_')
         && ((req.url.endsWith('.gif') || req.url.endsWith('.jpg') || req.url.endsWith('.jpeg')))) {
@@ -52,4 +54,4 @@ status.init();
 const server = http.createServer((req, res) => {
     netplayRequestListener(req, res, app);
 });
-server.listen(process.env.PORT || 3000, () => logger.info("F355 server started"));
+server.listen(Config.PORT, () => logger.info("F355 server started on port " + Config.PORT));

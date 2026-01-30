@@ -5,6 +5,7 @@ import express from 'express';
 import busboy from "busboy";
 import * as fs from 'node:fs/promises';
 import path from "node:path";
+import { Config } from "./config";
 
 const origBase64  = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 const substBase64 = "AZOLYNdnETmP6ci3Sze9IyXBhDgfQq7l5batM4rpKJj8CusxRF+k2V0wUGo1vWH/";
@@ -138,9 +139,8 @@ export async function playerDataUpload(req: express.Request, res: express.Respon
 {
     const playerData = req.body.f355_player_data;
     if (playerData === undefined) {
-        res.statusCode = 500;
         res.statusMessage = "Can't find f355_player_data";
-        res.end();
+        res.status(500).end();
         logger.error("playerDataUpload: can't find f355_player_data");
         return;
     }
@@ -175,8 +175,7 @@ export async function playerDataUpload(req: express.Request, res: express.Respon
         playerDataView(req, res, player, country);
     } catch (err) {
         logger.error("playerDataUpload: " + err);
-        res.statusCode = 500;
-        res.end();
+        res.status(500).end();
     }
 }
 
@@ -184,9 +183,8 @@ export async function playerDataSet(req: express.Request, res: express.Response)
 {
     const regId = req.body.playerId;
     if (typeof regId !== 'string') {
-        res.statusCode = 500;
         res.statusMessage = "Can't find user id";
-        res.end();
+        res.status(500).end();
         logger.error("playerDataSet: can't find user id");
         return;
     }
@@ -229,17 +227,15 @@ export async function playerDataSet(req: express.Request, res: express.Response)
             }
         }
         if (player === undefined) {
-            res.statusCode = 500;
             res.statusMessage = "Player is undefined";
-            res.end();
+            res.status(500).end();
             logger.error("playerDataSet: Player is undefined");
             return;
         }
         playerDataView(req, res, player, country);
     } catch (err) {
         logger.error("playerDataSet: " + err);
-        res.statusCode = 500;
-        res.end();
+        res.status(500).end();
     }
 }
 
@@ -268,15 +264,13 @@ export async function uploadReplay(req: express.Request, res: express.Response)
         const playerId = fields.get('playerId');
         const thefile = fields.get('thefile');
         if (playerId === undefined || thefile === undefined) {
-            res.statusCode = 500;
-            res.end();
+            res.status(500).end();
             logger.error("uploadReplay: missing playerId or thefile params");
             return;
         }
         const idx = thefile.indexOf("\n\n");
         if (idx == -1) {
-            res.statusCode = 500;
-            res.end();
+            res.status(500).end();
             logger.error("uploadReplay: can't find end of header");
             return;
         }
@@ -285,20 +279,20 @@ export async function uploadReplay(req: express.Request, res: express.Response)
             country = 'en';
         let fileData = Buffer.from(unscramble(thefile.slice(idx + 2)), "base64");
         const fileName = Date.now() + ".bin";
-        const replayPath = path.join(f355.getResultDir(), fileName);
+        const replayPath = path.join(Config.GHOST_DIR, fileName);
         try {
             await fs.writeFile(replayPath, fileData);
             const player = await saveResult(playerId, fileData, fileName, getRemoteIP(req));
             playerDataView(req, res, player, country, "Replay successfully uploaded");
         } catch (err) {
             logger.error("uploadReplay: " + err);
+            try { await fs.rm(replayPath); } catch {}
             try {
                 const player = await getPlayer(playerId);
                 const msg = err instanceof Error ? err.message : "Upload failed";
                 playerDataView(req, res, player, country, msg);
             } catch (err) {
-                res.statusCode = 500;
-                res.end();
+                res.status(500).end();
             }
         }
     });

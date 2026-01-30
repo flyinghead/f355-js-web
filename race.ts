@@ -5,6 +5,7 @@ import * as fs from 'node:fs/promises'
 import * as discord from "./discord"
 import { saveRace, saveQualifier, saveRaceResult } from "./database";
 import path from "node:path";
+import { Config } from "./config";
 
 const makeId = function(): number {
     return f355.getRandomInt(10000000); // MUST be less than 10 million for correct qualifier ranking
@@ -328,8 +329,7 @@ function checkStartRace(): void
 }
 
 async function getDefaultResult(race: Race): Promise<Buffer> {
-    const dir = process.env.GHOST_DIR || './ghost';
-    return fs.readFile(path.join(dir, race.getCircuitName() + '_1.bin'));
+    return fs.readFile(path.join(Config.GHOST_DIR, race.getCircuitName() + '_1.bin'));
 }
 
 async function timeoutRaces()
@@ -414,8 +414,7 @@ function startTimer(): void {
 
 async function getRaceSaveDir(race: Race)
 {
-    let racedir = process.env.RACE_DIR || './races';
-    racedir = path.join(racedir, race.startTime.toISOString() + '_' + race.getCircuitName().replace(' ', '_'));
+    const racedir = path.join(Config.RACE_DIR, race.startTime.toISOString() + '_' + race.getCircuitName().replace(' ', '_'));
     await fs.mkdir(racedir, { recursive: true });
     return racedir;
 }
