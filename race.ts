@@ -96,6 +96,7 @@ export class Race
     #results = new Map<number, Buffer>();
     #dbId: number | undefined;
     #racerDbIds = new Map<number, number>();
+    #raceDir: string | undefined;
 
     constructor(circuit: number, weather: number) {
         this.circuit = circuit;
@@ -149,7 +150,7 @@ export class Race
                         entry.carNum, entry.carColor, entry.intermediate, time, rank);
                     if (dbId !== undefined)
                         this.#racerDbIds.set(id, dbId);
-                    saveQualifierToFile(this, id, entryData, qualif);
+                    this.saveQualifierToFile(id, entryData, qualif);
                 });
             } catch (err) {
                 logger.error("Database error: " + err);
@@ -239,6 +240,27 @@ export class Race
     isRaceDone(): boolean {
 		return this.#entries.size == this.#results.size || this.#results.size == 8;
 	}
+
+    async getSaveDir(): Promise<string>
+    {
+        if (this.#raceDir === undefined) {
+            this.#raceDir = path.join(Config.RACE_DIR, this.startTime.toISOString() + '_' + this.getCircuitName().replace(' ', '_'));
+            await fs.mkdir(this.#raceDir, { recursive: true });
+        }
+        return this.#raceDir;
+    }
+
+    async saveQualifierToFile(id: number, entry: Buffer, qualifier: Buffer): Promise<void>
+    {
+        try {
+            const racedir = await this.getSaveDir();
+            const fpath = path.join(racedir, id.toString(16) + '_' + this.getEntryName(id).replace(' ', '_').replace('/', '_') + '_qualif.bin');
+            const merged = Buffer.concat([ entry, qualifier ]);
+            await fs.writeFile(fpath, merged);
+        } catch (err) {
+            logger.error('Saving qualifier failed: ' + err);
+        }
+    }
 }
 const races = new Array<Race>();
 const raceById = new Map<number, Race>();
@@ -412,29 +434,10 @@ function startTimer(): void {
         intervalId = setInterval(timeoutRaces, 15000);
 }
 
-async function getRaceSaveDir(race: Race)
-{
-    const racedir = path.join(Config.RACE_DIR, race.startTime.toISOString() + '_' + race.getCircuitName().replace(' ', '_'));
-    await fs.mkdir(racedir, { recursive: true });
-    return racedir;
-}
-
-async function saveQualifierToFile(race: Race, id: number, entry: Buffer, qualifier: Buffer): Promise<void>
-{
-    try {
-        const racedir = await getRaceSaveDir(race);
-        const fpath = path.join(racedir, id.toString(16) + '_' + race.getEntryName(id).replace(' ', '_').replace('/', '_') + '_qualif.bin');
-        const merged = Buffer.concat([ entry, qualifier ]);
-        await fs.writeFile(fpath, merged);
-    } catch (err) {
-        logger.error('Saving qualifier failed: ' + err);
-    }
-}
-
 export async function saveResultToFile(race: Race, id: number, result: Buffer): Promise<void>
 {
     try {
-        const racedir = await getRaceSaveDir(race);
+        const racedir = await race.getSaveDir();
         const fpath = path.join(racedir, id.toString(16) + '_' + race.getEntryName(id).replace(' ', '_').replace('/', '_') + '.bin');
         await fs.writeFile(fpath, result);
         logger.debug('Result saved to ' + fpath);
