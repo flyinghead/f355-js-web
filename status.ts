@@ -10,7 +10,7 @@ var statusUrl: string | undefined;
 var updateInterval = 300;
 
 class Status {
-    readonly gameId = "f355-js";
+    readonly gameId = "f355";
     readonly timestamp = Math.floor(Date.now() / 1000);
     playerCount = 0;
     gameCount = 0;

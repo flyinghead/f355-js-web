@@ -65,7 +65,7 @@ function entryCgi(body: Buffer, res: http.ServerResponse)
                 const entry = races.getEntry(id);
                 if (entry !== undefined)
                     // might have timed out
-                    logger.info(`entry[1]: ${entry.getName()} waiting...`);
+                    logger.debug(`entry[1]: ${entry.getName()} waiting...`);
                 const outdata = Buffer.from([
                     0, 0, 0, 0, 		// status: 0:waiting, 1:game start
                     entries, 0, 0, 0,   // # entries
@@ -176,7 +176,7 @@ function eliminationCgi(body: Buffer, res: http.ServerResponse)
                 }
             }
             respond(outdata, res);
-            logger.info(`Race ${race.getCircuitName()} queried by ${race.getEntryName(id)}: status ${outdata[0]}`);
+            logger.debug(`Race ${race.getCircuitName()} queried by ${race.getEntryName(id)}: status ${outdata[0]}`);
         }
     }
 }
@@ -263,7 +263,7 @@ function finalCgi(body: Buffer, res: http.ServerResponse)
                         }
                     }
                 }
-                logger.info(`Race ${race.getCircuitName()} final queried by ${race.getEntryName(id)}: status ${outdata[0]}`);
+                logger.debug(`Race ${race.getCircuitName()} final queried by ${race.getEntryName(id)}: status ${outdata[0]}`);
             }
             respond(outdata, res);
         }

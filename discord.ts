@@ -8,6 +8,7 @@ import { Config } from "./config";
 var webHookUrl = Config.DISCORD_URL;
 var gameName = "F355 Challenge";
 var gamepic = "https://dcnet.flyca.st/gamepic/f355.jpg";
+const gameId = "f355";
 
 const postNotif = function(postData: string): void
 {
@@ -87,7 +88,7 @@ export function init()
         else
         {
             const games = JSON.parse(gamesData.toString());
-            const game = games["f355"];
+            const game = games[gameId];
             if (game !== undefined) {
                 gameName = game.name ?? gameName;
                 gamepic = game.thumbnail ?? gamepic;
@@ -103,7 +104,7 @@ export function init()
         {
             const config = parseConfigFile(configData.toString());
             const disabledGames = config.get("disabled-games");
-            if (disabledGames !== undefined && disabledGames.indexOf("f355-js") >= 0)
+            if (disabledGames !== undefined && disabledGames.indexOf(gameId) >= 0)
                 return;
             webHookUrl = config.get("webhook") ?? Config.DISCORD_URL;
         }
